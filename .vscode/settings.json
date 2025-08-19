@@ -1,0 +1,10 @@
+﻿{
+  "python.analysis.autoImportCompletions": true,
+  "python.defaultInterpreterPath": "conda",
+  "files.exclude": {
+    "**/__pycache__": true,
+    "data/raw": true,
+    "data/interim": true,
+    "data/processed": true
+  }
+}

@@ -1,0 +1,31 @@
+﻿name: mscqf-rep
+channels:
+  - conda-forge
+dependencies:
+  - python=3.11
+  - pip
+  - ipykernel
+  - jupyterlab
+  - numpy
+  - pandas
+  - scipy
+  - statsmodels
+  - matplotlib
+  - plotly
+  - scikit-learn
+  - pyarrow
+  - numba
+  - networkx
+  - tqdm
+  - requests
+  - pydantic
+  - python-dotenv
+  - pip:
+      - ccxt
+      - web3
+      - dune-client
+      - gql[requests]
+      - tardis-dev
+      - polars
+      - pyjanitor
+      - linearmodels

@@ -1,0 +1,23 @@
+﻿# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.env
+.venv
+.ipynb_checkpoints/
+# Jupyter
+.jupyter/
+# Data (keep small CSVs by whitelisting in git as needed)
+data/raw/
+data/interim/
+data/processed/
+!data/.gitkeep
+# VS Code
+.vscode/*
+!.vscode/settings.json
+# OS
+Thumbs.db
+.DS_Store
+# Cache
+*.log
+*.tmp

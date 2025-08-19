@@ -1,0 +1,11 @@
+﻿# Use in Colab: !pip -q install -r https://raw.githubusercontent.com/jazznao0304/ssrn-3984897-replication/main/colab-requirements.txt
+ccxt
+web3
+dune-client
+gql[requests]
+tardis-dev
+polars
+pyjanitor
+linearmodels
+statsmodels
+plotly
