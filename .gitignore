@@ -2,22 +2,45 @@
 __pycache__/
 *.py[cod]
 *.egg-info/
+
+# Secrets / env
 .env
-.venv
-.ipynb_checkpoints/
+config/.env
+config/*.env
+config/*secret*
+config/*key*
+
 # Jupyter
+.ipynb_checkpoints/
 .jupyter/
+
 # Data (keep small CSVs by whitelisting in git as needed)
 data/raw/
 data/interim/
 data/processed/
 !data/.gitkeep
+
+# Catch stray large binaries outside /data
+*.parquet
+*.feather
+*.arrow
+*.pq
+*.h5
+*.pickle
+*.pkl
+
 # VS Code
 .vscode/*
 !.vscode/settings.json
+
 # OS
 Thumbs.db
 .DS_Store
-# Cache
+
+# Cache / temp
 *.log
 *.tmp
+
+# (Optional) outputs — uncomment if you do NOT want to track figures/tables
+# reports/figures/
+# reports/tables/

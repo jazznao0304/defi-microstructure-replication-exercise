@@ -1,164 +1,134 @@
 ﻿# ssrn-3984897-replication
 
-Replication of SSRN 3984897.
-
-## Folder layout
-`
-
-├── data
-│   ├── raw          <- Vendor downloads and raw extracts (not tracked)
-│   ├── interim      <- Cleaned / intermediate artifacts (not tracked)
-│   └── processed    <- Final analysis tables (not tracked)
-├── notebooks        <- Jupyter / Colab notebooks
-├── src
-│   └── replication  <- Python source code (functions, pipelines)
-├── reports
-│   └── figures      <- Generated plots for the paper
-└── config           <- Credentials templates & settings
-
-`
-
-## Environment
-Conda env: $CondaEnv (Python 3.11). See environment.yml.
-
-<!-- REPL_EXPORT_START -->
-# ssrn-3984897-replication
-
-Replication of SSRN 3984897.
+Replication of SSRN 3984897 (scaled-down daily panel).
+Focus: market microstructure around Uniswap v3 launch (2021-05-05) and FTX collapse (2022-11-10).
 
 ## Folder layout
 
 ```
-
+├── config                 <- Credentials templates & settings (e.g., .env.template)
+│
 ├── data
-│   ├── raw                  <- Vendor downloads and raw extracts (not tracked)
-│   │   ├── cex/ohlcv
-│   │   ├── ethereum/gas\_fees
-│   │   ├── uniswap\_v2/pair\_day\_data
-│   │   └── uniswap\_v3/pool\_day\_data
-│   ├── interim              <- Cleaned / intermediate artifacts (not tracked)
-│   │   ├── cex/proxies      <- Daily CEX microstructure proxies (Roll/CHL/CS/Amihud)
-│   │   └── dex/proxies      <- Daily DEX proxies (Amihud/Roll) by v3 fee-tier & v2
-│   └── processed            <- Final analysis tables (not tracked)
-│       ├── compare          <- Daily comparison panels
-│       │   ├── daily\_panel.parquet
-│       │   └── daily\_panel\_agg.parquet   <- adds aggregated v3 ("uniswap\_v3\_all")
-│       └── features         <- Modeling features
-│           └── daily\_features.parquet
-├── notebooks
-│   ├── 01\_\* … 06\_\*          <- Data collection & panel build (up to daily panel)
-│   ├── 07\_build\_features.ipynb
-│   ├── 08\_descriptives.ipynb
-│   ├── 09\_models\_fe\_did.ipynb
-│   ├── 10\_robustness\_checks.ipynb
-│   ├── 11\_visualization\_and\_interpretation.ipynb
-│   └── 12\_export\_replication\_package.ipynb
-├── src
-│   └── replication
-│       ├── build\_daily\_comparison\_panel.py
-│       ├── cex\_proxies\_from\_ohlcv.py
-│       └── dex\_proxies\_from\_daily.py
+│   ├── raw                <- Vendor downloads and raw extracts (not tracked)
+│   │   ├── uniswap_v2/pair_day_data
+│   │   ├── uniswap_v3/pool_day_data
+│   │   └── ethereum/gas_fees
+│   ├── interim            <- Cleaned / intermediate artifacts (not tracked)
+│   │   ├── cex/proxies    # CHL/CS/Amihud/Roll from CEX OHLCV (daily)
+│   │   └── dex/proxies    # Amihud/Roll from DEX daily aggregates
+│   └── processed          <- Final analysis tables (not tracked)
+│       ├── compare        # daily_panel.parquet (+ v3-aggregated)
+│       └── features       # daily_features.parquet
+│
+├── notebooks              <- Jupyter notebooks (repro order below)
+│   ├── 01_... to 06_build_daily_comparison_panel.ipynb
+│   ├── 07_build_features.ipynb
+│   ├── 08_descriptives.ipynb
+│   ├── 09_models_fe_did.ipynb
+│   ├── 10_robustness_checks.ipynb
+│   └── 11_visualization_and_interpretation.ipynb
+│
 ├── reports
 │   ├── figures
 │   │   ├── descriptives
-│   │   ├── models
 │   │   ├── robustness
 │   │   └── interpretation
-│   ├── models               <- Tidy coefficient tables (*.parquet)
-│   ├── tables
-│   │   ├── models           <- statsmodels summaries (*.txt)
-│   │   └── robustness
-│   ├── manifests            <- File inventories (auto-created)
-│   └── system               <- Environment snapshots (pip/conda)
-├── dist                     <- Zipped replication bundles
-└── config                   <- Credentials templates & settings
-
+│   └── tables
+│       ├── descriptives
+│       └── models         # statsmodels summaries (.txt), tidy coefs (.parquet)
+│
+├── src
+│   └── replication        <- Python source (pipelines + helpers)
+│       ├── build_daily_comparison_panel.py
+│       ├── cex_proxies_from_ohlcv.py
+│       ├── dex_proxies_from_daily.py
+│       └── (helpers, loaders, etc.)
+│
+└── environment.yml        <- Conda env (Python 3.11)
 ```
 
 ## Environment
 
-Conda env: `$CondaEnv` (Python 3.11). See `environment.yml`.
-We also snapshot the environment during export into `reports/system/`.
+Conda env: `mscqf-rep` (Python 3.11). See `environment.yml`.
 
----
+```bash
+conda env create -f environment.yml
+conda activate mscqf-rep
+python -V
+```
 
-## Research plan (what we replicate and why)
+## Reproduction outline (minimal)
 
-**Focus:** market microstructure under limited (daily) data. We proxy liquidity on CEX and DEX and study how Uniswap v3 and major shocks shift activity/liquidity.
+1. **Data prep**
 
-**Events:**
-* Uniswap v3 launch — 2021-05-05
-* FTX collapse — 2022-11-10
+   * Place raw exports under `data/raw/...` (Uniswap v2/v3 daily, ETH gas fees).
+   * (Optional) Build proxies
 
-**Main analyses (A1–A8):**
-* **A1 — DEX activity vs v3 adoption (TWFE)**  
-  *H1:* Higher v3 penetration within a pair increases DEX volume.  
-  `log(DEX volume) ~ v3_share + ETH gas + FE(label) + FE(date)`
-* **A2 — Spillovers to CEX volatility (TWFE)**  
-  *H2:* Higher v3 share (DEX) lowers CEX volatility (abs returns).  
-  `|CEX ret| ~ v3_share + ETH gas + FE(label) + FE(date)`
-* **A3 — CEX microstructure (TWFE, per proxy)**  
-  *H3:* CEX spreads/illiquidity (Roll, CHL, CS, Amihud) improve with volume and deteriorate with congestion.  
-  `proxy_cex ~ log(CEX volume) + ETH gas + FEs`
-* **A4 — DEX microstructure (TWFE, per proxy)**  
-  *H4:* DEX Amihud/Roll decrease with DEX volume; increase with gas.  
-  `proxy_dex ~ log(DEX volume) + ETH gas + FEs`
-* **A5 — DiD #1: v3 launch (DEX vs CEX)**  
-  *H5:* Post-launch, DEX volume rises relative to CEX.  
-  `log(volume) ~ is_dex×Post_v3 + gas + FEs`
-* **A6 — Event study: v3 (DEX only)**  
-  *H6:* Flat pre-trends; post-event increase in DEX activity.
-* **A7 — DiD #2: FTX (DEX vs CEX)**  
-  *H7:* Post-FTX, DEX activity rises relative to CEX.
-* **A8 — Event study: FTX (DEX only)**  
-  *H8:* Persistent reallocation toward DEX post-FTX.
+     * CEX: `src/replication/cex_proxies_from_ohlcv.py` → `data/interim/cex/proxies/...`
+     * DEX: `src/replication/dex_proxies_from_daily.py` → `data/interim/dex/proxies/...`
+2. **Panel build**
 
-**Proxies used**
-* **CEX (from OHLCV):** Roll (1984), CHL (Abdi–Ranaldo 2017), Corwin–Schultz (2012), Amihud (2002).
-* **DEX (from daily OHLC + volume):** Amihud, Roll (adapted to daily).
+   * Run `src/replication/build_daily_comparison_panel.py`
+     → `data/processed/compare/daily_panel.parquet` (+ `_agg` with v3 fee-tier aggregation)
+3. **Features**
 
----
+   * `07_build_features.ipynb` → `data/processed/features/daily_features.parquet`
+4. **Descriptives**
 
-## Core datasets (minimal to run models)
+   * `08_descriptives.ipynb` → plots/tables in `reports/figures/descriptives`, `reports/tables/descriptives`
+5. **Models (FE & DiD)**
 
-* `data/processed/compare/daily_panel.parquet` — CEX + DEX (v2 + v3 fee-tiers) + ETH gas.
-* `data/processed/compare/daily_panel_agg.parquet` — adds aggregated v3 tier “uniswap_v3_all”.
-* `data/processed/features/daily_features.parquet` — modeling features (e.g., `v3_share`, flags, logs, proxies).
+   * `09_models_fe_did.ipynb` → tidy coefs in `reports/models/*.parquet`, summaries in `reports/tables/models/*.txt`
+6. **Robustness**
 
----
+   * `10_robustness_checks.ipynb`
+7. **Interpretation**
 
-## How to reproduce (quick)
+   * `11_visualization_and_interpretation.ipynb` → figures/tables under `reports/*`
 
-1. Create the conda env (`environment.yml`) or use the snapshots in `reports/system/`.
-2. Run or verify up to the processed panel (`build_daily_comparison_panel.py` / `06_*`).
-3. Run `07_build_features.ipynb`.
-4. Run `08_descriptives.ipynb` (optional figures).
-5. Run `09_models_fe_did.ipynb` (FE + DiD) and `10_robustness_checks.ipynb`.
-6. Inspect tables in `reports/tables/` and coefs in `reports/models/`.
-7. (Optional) `11_visualization_and_interpretation.ipynb` for consolidated takeaways.
-8. `12_export_replication_package.ipynb` to build a clean ZIP + README insert.
+## Research plan (brief)
 
----
+* **Aim:** Replicate core findings with **daily** data and **microstructure proxies** (CEX: CHL/CS/Amihud/Roll; DEX: Amihud/Roll).
+* **Main questions:**
 
-## Notes & limitations
+  1. Does higher **Uniswap v3 penetration** raise **DEX activity**? (Panel TWFE)
+  2. Do v3 gains **spill over** to **CEX volatility/liquidity**? (Panel TWFE with proxies)
+  3. How do **events** (v3 launch, FTX collapse) shift activity **DEX vs CEX**? (DiD + event studies)
 
-* We work at **daily** frequency; true microstructure moments (trade/quote) are approximated by **proxies**. Some paper results cannot be exactly reproduced without high-freq data.
-* Uniswap v3 fee-tier activity is aggregated to a **volume-weighted v3 share** per pair/day.
-* Warnings like “covariance of constraints does not have full rank” arise from many FE dummies; clustered SEs are still computed but some dummy covariances are singular (expected under two-way FE with many fixed effects).
+**Key events:** Uniswap v3 launch = 2021-05-05; FTX collapse = 2022-11-10.
 
----
+## Key takeaways (very short)
 
-## Replication package
+* **v3 share → DEX volume (A1):** Positive and significant in TWFE (supports adoption → activity).
+* **Spillovers to CEX vol (A2):** Inconclusive at daily frequency with our proxies.
+* **CEX microstructure (A3):** Amihud behaves as expected (activity ↓ illiquidity). Roll/CHL/CS show mixed/opp signs—likely scale/measurement differences in daily proxies across venues.
+* **DEX microstructure (A4):** Weak/inconclusive relationships with activity at daily frequency.
+* **DiD (A5–A8):**
 
-Run `12_export_replication_package.ipynb` to:
-* snapshot the environment (pip/conda) into `reports/system/`,
-* write a file manifest with hashes to `reports/manifests/`,
-* zip essential artifacts into `dist/replication_package_*.zip`,
-* update this section in place.
+  * v3 launch DiD (DEX vs CEX) not robustly positive in our daily setup; DEX-only event study shows strong **pre-trends**, so treat causality cautiously.
+  * FTX DiD: no clean reallocation toward DEX; DEX-only event study shows broad **post drop** (system-wide contraction).
+* **Bottom line:** Daily + proxies replicate **directional** results for A1; event-driven causal claims are fragile without higher frequency and richer controls.
 
-Artifacts included: processed panels, features, model coefs, model summaries, robustness tables, figures, and manifests (raw vendor downloads are excluded).
-<!-- REPL_EXPORT_END -->
+## Data policy
 
+* `data/raw`, `data/interim`, and `data/processed` are **not tracked** in git (see `.gitignore`).
+* Generated `reports/figures` & `reports/tables` **may** be tracked (optional).
 
+## Quick start (notebooks)
 
+Open in VS Code or Jupyter and run in order:
 
+```
+06_build_daily_comparison_panel.ipynb
+07_build_features.ipynb
+08_descriptives.ipynb
+09_models_fe_did.ipynb
+10_robustness_checks.ipynb
+11_visualization_and_interpretation.ipynb
+```
+
+## Notes
+
+* Event-study terms use `D_tau_mXX` / `D_tau_pXX` naming; plots show pre & post bins relative to $k=-1$.
+* Standard errors are clustered by **label** (pair).
+* All models include **pair FEs** and **date FEs** unless stated otherwise.
