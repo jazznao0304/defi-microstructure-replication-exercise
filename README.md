@@ -1,6 +1,9 @@
-﻿# ssrn-3984897-replication
+﻿# defi-microstructure-replication-exercise
 
-Replication of SSRN 3984897 (scaled-down daily panel).
+⚠️ **Disclaimer**: This repository contains a scaled-down, student-level replication attempt for learning purposes. 
+It is not an official replication of Barbon & Ranaldo (2024), and any errors or limitations are my own.
+
+Based on Barbon & Ranaldo (2024), *On the Quality of Cryptocurrency Markets: Centralized Versus Decentralized Exchanges*. 
 Focus: market microstructure around Uniswap v3 launch (2021-05-05) and FTX collapse (2022-11-10).
 
 ## Folder layout
